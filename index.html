@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maktab Pro - Дизайн 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .hidden { display: none !important; }
+        .tab-view { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section-header { font-size: 1.5rem; font-weight: 900; color: #1e293b; margin-bottom: 1.5rem; font-style: italic; border-left: 5px solid #ebc725; padding-left: 15px; text-transform: uppercase; }
+        .card { border-radius: 24px; border: 1px solid #f1f5f9; background: white; transition: 0.3s; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .btn-primary { background: #25eb2f; color: white; font-weight: bold; border-radius: 16px; padding: 12px; transition: 0.2s; border: none; cursor: pointer; }
+
+        /* Цвета оценок */
+        .grade-5, .grade-4, .grade-green { background: linear-gradient(135deg, #4ade80, #22c55e); color: white; }
+        .grade-3, .grade-yellow { background: linear-gradient(135deg, #facc15, #eab308); color: white; }
+        .grade-2, .grade-1, .grade-red { background: linear-gradient(135deg, #f87171, #ef4444); color: white; }
+        .grade-gray { background: linear-gradient(135deg, #94a3b8, #64748b); color: white; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-blue-700 px-4">
+        <div class="bg-white p-10 rounded-[40px] shadow-2xl w-full max-w-md text-center">
+            <h1 class="text-3xl font-black text-blue-600 italic mb-8 uppercase">Maktab Login</h1>
+            <input type="text" id="log-user" placeholder="Логин" class="w-full p-4 bg-slate-100 rounded-2xl mb-4 border focus:border-blue-500 outline-none">
+            <input type="password" id="log-pass" placeholder="Пароль" class="w-full p-4 bg-slate-100 rounded-2xl mb-6 border focus:border-blue-500 outline-none">
+            <button onclick="handleLogin()" class="w-full btn-primary uppercase tracking-widest">Войти</button>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden min-h-screen flex flex-col">
+        <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b p-4 px-8 flex justify-between items-center">
+            <div class="text-2xl font-black text-blue-600 italic flex items-center gap-2"><i class="fas fa-graduation-cap"></i> MAKTAB</div>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p id="user-name" class="font-bold text-sm"></p>
+                    <p id="user-role-label" class="text-[10px] text-slate-400 font-black uppercase"></p>
+                </div>
+                <div class="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-2xl text-yellow-700 font-black">
+                    <i class="fas fa-star"></i> <span id="user-total-score">0</span>
+                </div>
+                <button onclick="location.reload()" class="text-slate-400 hover:text-red-500"><i class="fas fa-sign-out-alt text-xl"></i></button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto flex flex-col md:flex-row p-6 gap-8">
+            <aside class="w-full md:w-64 space-y-2">
+                <button onclick="showTab('news')" class="w-full text-left p-4 bg-white rounded-2xl font-bold flex items-center gap-3 hover:bg-blue-50"><i class="fas fa-newspaper text-blue-500"></i> Новости</button>
+                <button onclick="showTab('diary')" class="w-full text-left p-4 bg-white rounded-2xl font-bold flex items-center gap-3 hover:bg-orange-50"><i class="fas fa-book text-orange-500"></i> Дневник</button>
+                <button onclick="showTab('grades')" class="w-full text-left p-4 bg-white rounded-2xl font-bold flex items-center gap-3 hover:bg-yellow-50"><i class="fas fa-award text-yellow-500"></i> Оценки</button>
+                <button onclick="showTab('tests')" class="w-full text-left p-4 bg-white rounded-2xl font-bold flex items-center gap-3 hover:bg-purple-50"><i class="fas fa-vial text-purple-500"></i> Тесты</button>
+                <button onclick="showTab('shop')" class="w-full text-left p-4 bg-white rounded-2xl font-bold flex items-center gap-3 hover:bg-green-50"><i class="fas fa-shopping-cart text-green-500"></i> Магазин</button>
+                <button id="admin-btn" onclick="showTab('admin')" class="hidden w-full text-left p-4 bg-red-50 text-red-600 rounded-2xl font-bold flex items-center gap-3 hover:bg-red-100"><i class="fas fa-tools"></i> Админка</button>
+            </aside>
+
+            <main class="flex-1">
+                <div id="tab-news" class="tab-view space-y-4">
+                    <h2 class="section-header">Школьная Лента</h2>
+                    <div id="news-container" class="grid gap-4"></div>
+                </div>
+
+                <div id="tab-diary" class="tab-view hidden">
+                    <h2 class="section-header">Личный Дневник</h2>
+                    <div id="display-schedule" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    <div class="mt-6 p-6 bg-white rounded-3xl border-t-8 border-orange-400 shadow-sm">
+                        <h4 class="font-black text-orange-600 mb-2 uppercase text-[10px]">Домашнее задание:</h4>
+                        <div id="display-homework" class="text-slate-700 italic">Заданий нет</div>
+                    </div>
+                </div>
+
+                <div id="tab-grades" class="tab-view hidden">
+                    <h2 class="section-header text-yellow-600">Журнал Оценок</h2>
+                    <div id="grades-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+                </div>
+
+                <div id="tab-tests" class="tab-view hidden">
+                    <h2 class="section-header text-purple-600">Тестирование</h2>
+                    <div id="tests-list" class="grid gap-4"></div>
+                    <div id="test-player" class="hidden bg-white p-8 rounded-[32px] border-4 border-purple-50 shadow-2xl"></div>
+                </div>
+
+                <div id="tab-shop" class="tab-view hidden">
+                    <h2 class="section-header text-green-600">Маркет</h2>
+                    <div id="shop-items" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                </div>
+
+                <div id="tab-admin" class="tab-view hidden space-y-8 pb-10">
+                    <h2 class="section-header text-red-600">Панель Управления</h2>
+                    
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+                        <h3 class="font-bold mb-4 text-yellow-600 uppercase text-xs">Выставить оценку</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <select id="grade-student" class="p-3 bg-slate-50 border rounded-xl font-bold"></select>
+                            <input id="grade-subject" placeholder="Предмет" class="p-3 bg-slate-50 border rounded-xl">
+                            <input type="date" id="grade-date" class="p-3 bg-slate-50 border rounded-xl">
+                            <input id="grade-comment" placeholder="За что (напр. ОТВ на вопрос)" class="p-3 bg-slate-50 border rounded-xl">
+                        </div>
+                        <div class="flex gap-2 mb-4">
+                            <input id="grade-value" placeholder="Оценка (5 или Буква)" class="flex-1 p-3 bg-slate-50 border rounded-xl font-black">
+                            <select id="grade-color" class="p-3 bg-slate-50 border rounded-xl font-bold">
+                                <option value="auto">Авто-цвет</option>
+                                <option value="green">Зеленый</option>
+                                <option value="yellow">Желтый</option>
+                                <option value="red">Красный</option>
+                                <option value="gray">Серый</option>
+                            </select>
+                        </div>
+                        <button onclick="manualGrade()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">ВЫСТАВИТЬ ОЦЕНКУ</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+                        <h3 class="font-bold mb-4 text-blue-600 uppercase text-xs">Новости</h3>
+                        <input id="news-title-input" placeholder="Заголовок" class="w-full p-3 mb-2 bg-slate-50 rounded-xl border">
+                        <textarea id="news-text-input" placeholder="Текст..." class="w-full p-3 bg-slate-50 rounded-xl border mb-3"></textarea>
+                        <button onclick="publishNews()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">ОПУБЛИКОВАТЬ</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+                        <h3 class="font-bold mb-4 text-orange-600 uppercase text-xs">Дневник / Расписание</h3>
+                        <select id="diary-target-student" class="w-full p-3 mb-4 bg-slate-100 rounded-xl border font-bold"></select>
+                        <div id="admin-schedule-inputs" class="space-y-2 mb-4"></div>
+                        <button onclick="addScheduleRowUI()" class="text-blue-600 font-bold text-xs mb-4">+ Добавить урок</button>
+                        <textarea id="admin-homework-input" placeholder="Домашнее задание..." class="w-full p-3 bg-slate-50 rounded-xl border mb-4"></textarea>
+                        <button onclick="saveDiary()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold">ОБНОВИТЬ ДНЕВНИК</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border shadow-sm">
+                        <h3 class="font-bold mb-4 text-purple-600 uppercase text-xs">Создать Тест</h3>
+                        <input id="test-title-input" placeholder="Название теста" class="w-full p-3 mb-4 bg-slate-50 rounded-xl border font-bold">
+                        <div id="test-qs-container" class="space-y-4 mb-4"></div>
+                        <button onclick="addTestQuestionUI()" class="text-purple-600 font-bold mb-4">+ Добавить вопрос</button>
+                        <button onclick="saveTest()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold">ОПУБЛИКОВАТЬ ТЕСТ</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAr4H-obZsEVVR2NOS0Dn700tzq2AnquKY",
+        authDomain: "emaktab-it.firebaseapp.com",
+        databaseURL: "https://emaktab-it-default-rtdb.firebaseio.com",
+        projectId: "emaktab-it",
+        storageBucket: "emaktab-it.firebasestorage.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const USERS = [
+        {login: 'admin', pass: 'per14sik', role: 'admin', nick: 'Главный Админ'},
+        {login: 'KimStanislav', pass: '123', role: 'student', nick: 'Ким Станислав'},
+        {login: 'Фаттахов Даниэль', pass: '123', role: 'student', nick: 'Фаттахов Даниэль'},
+        {login: 'KurbanbaevAlikhan', pass: '123', role: 'student', nick: 'Курбанбаев Алихан'},
+        {login: 'KadirkulovBexultan', pass: '123', role: 'student', nick: 'Кадиркулов Бексултан'},
+        {login: 'AskarovaSamira', pass: '123', role: 'student', nick: 'Аскарова Самира'},
+        {login: 'AlisherovAbdukhalil', pass: '123', role: 'student', nick: 'Алишеров Абдухалил'},
+        {login: 'RikhsivaevaLaziza', pass: '123', role: 'student', nick: 'Рихсиваева Лазиза'},
+        {login: 'MukhammedovDzhavokhir', pass: '123', role: 'student', nick: 'Мухаммедов Джавохир'},
+        {login: 'YusupalievaMarzhan', pass: '123', role: 'student', nick: 'Юсупалиева Маржан'},
+        {login: 'NabievaOmina', pass: '123', role: 'student', nick: 'Набиева Омина'},
+        {login: 'Saidkasimov Mirazbek', pass: '123', role: 'student', nick: 'Сайдкасимов Миразбек'},
+        {login: 'NurlibaevNurakim', pass: '123', role: 'student', nick: 'Нурлибаев Нураким'},
+    ];
+
+    window.currentUser = null;
+
+    window.handleLogin = () => {
+        const u = document.getElementById('log-user').value.trim();
+        const p = document.getElementById('log-pass').value.trim();
+        const user = USERS.find(x => x.login === u && x.pass === p);
+        if(user) {
+            window.currentUser = user;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('user-name').innerText = user.nick;
+            document.getElementById('user-role-label').innerText = user.role === 'admin' ? 'Админ' : 'Ученик';
+            if(user.role === 'admin') {
+                document.getElementById('admin-btn').classList.remove('hidden');
+                const opt = USERS.filter(x => x.role === 'student').map(x => `<option value="${x.login}">${x.nick}</option>`).join('');
+                document.getElementById('diary-target-student').innerHTML = opt;
+                document.getElementById('grade-student').innerHTML = opt;
+            }
+            document.getElementById('grade-date').valueAsDate = new Date();
+            startSync();
+        } else alert("Ошибка!");
+    };
+
+    window.showTab = (t) => {
+        document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
+        document.getElementById('tab-' + t).classList.remove('hidden');
+    };
+
+    function getGradeClass(val, forcedColor) {
+        if(forcedColor && forcedColor !== 'auto') return 'grade-' + forcedColor;
+        if(val == '5' || val == '4') return 'grade-green';
+        if(val == '3') return 'grade-yellow';
+        if(val == '2' || val == '1') return 'grade-red';
+        return 'grade-gray';
+    }
+
+    // --- ТЕСТЫ ---
+    let activeT = null; let curQ = 0; let curS = 0; let totalP = 0; let userAns = [];
+    window.startTest = async (id) => {
+        const snap = await get(ref(db, `tests/${id}`));
+        if(!snap.exists()) return;
+        activeT = snap.val(); activeT.id = id;
+        curQ = 0; curS = 0; totalP = 0; userAns = [];
+        document.getElementById('tests-list').classList.add('hidden');
+        document.getElementById('test-player').classList.remove('hidden');
+        renderQuestion();
+    };
+
+    function renderQuestion() {
+        const q = activeT.questions[curQ];
+        document.getElementById('test-player').innerHTML = `
+            <div class="mb-4 flex justify-between text-xs font-black text-purple-400">
+                <span>ВОПРОС ${curQ + 1} / ${activeT.questions.length}</span>
+                <span>${q.points} БАЛЛОВ</span>
+            </div>
+            <h3 class="text-xl font-black mb-6">${q.text}</h3>
+            <div class="grid gap-3">
+                ${q.opts.map((opt, i) => `
+                    <button onclick="handleSelect(${i})" class="w-full p-4 bg-slate-50 border-2 border-transparent rounded-2xl font-bold text-left hover:border-purple-500 hover:bg-purple-50 transition">
+                        ${opt}
+                    </button>
+                `).join('')}
+            </div>`;
+    }
+
+    window.handleSelect = (idx) => {
+        const q = activeT.questions[curQ];
+        userAns.push(idx);
+        totalP += parseInt(q.points);
+        if(idx === q.correct) curS += parseInt(q.points);
+        curQ++;
+        if(curQ < activeT.questions.length) renderQuestion();
+        else finishTest();
+    };
+
+    function finishTest() {
+        const result = {
+            student: currentUser.login, studentNick: currentUser.nick,
+            testId: activeT.id, title: activeT.title, score: curS,
+            max: totalP, answers: userAns, time: Date.now()
+        };
+        push(ref(db, 'results'), result);
+        get(ref(db, `scores/${currentUser.login}`)).then(s => set(ref(db, `scores/${currentUser.login}`), (s.val()||0) + curS));
+        document.getElementById('test-player').innerHTML = `<div class="text-center py-6"><h2 class="text-3xl font-black text-purple-600 mb-2 italic">Завершено!</h2><div class="text-5xl font-black mb-4">${curS} / ${totalP}</div><button onclick="location.reload()" class="w-full btn-primary">ВЕРНУТЬСЯ</button></div>`;
+    }
+
+    // --- СИНХРОНИЗАЦИЯ ---
+    function startSync() {
+        onValue(ref(db, 'posts'), s => {
+            let h = ""; s.forEach(p => { const v = p.val(); h = `<div class="card p-6 border-l-4 border-blue-500 mb-2"><b>${v.title}</b><p class="text-sm text-slate-600">${v.text}</p></div>` + h; });
+            document.getElementById('news-container').innerHTML = h || "Новостей нет";
+        });
+
+        onValue(ref(db, 'results'), s => {
+            let h = "";
+            s.forEach(r => {
+                const v = r.val();
+                if(currentUser.role === 'admin' || v.student === currentUser.login) {
+                    const gradeClass = getGradeClass(v.score, v.color);
+                    const dateStr = v.workDate ? new Date(v.workDate).toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'}) : 'Недавно';
+                    const comment = v.comment ? `${v.comment} за ` : 'Оценка за ';
+                    h = `
+                    <div class="flex flex-col items-start">
+                        <div class="w-full aspect-video ${gradeClass} rounded-2xl flex items-center justify-center text-4xl font-black shadow-lg mb-2 relative overflow-hidden">
+                            ${v.score}
+                            <i class="fas fa-graduation-cap absolute -right-2 -bottom-2 opacity-20 text-5xl rotate-12"></i>
+                        </div>
+                        <div class="font-bold text-sm leading-tight">${v.title}</div>
+                        <div class="text-[11px] text-slate-400 font-medium">${comment}${dateStr}</div>
+                    </div>` + h;
+                }
+            });
+            document.getElementById('grades-grid').innerHTML = h || "Оценок пока нет";
+        });
+
+        onValue(ref(db, 'tests'), st => {
+            get(ref(db, 'results')).then(sr => {
+                const res = []; sr.forEach(r => { if(r.val().student === currentUser.login) res.push(r.val()); });
+                let h = "";
+                st.forEach(t => {
+                    const test = t.val(); const done = res.find(r => r.testId === t.key);
+                    let btn = `<button onclick="startTest('${t.key}')" class="bg-purple-600 text-white px-5 py-2 rounded-xl font-bold text-xs">ПРОЙТИ</button>`;
+                    if(done) btn = `<div class="text-[10px] font-bold text-green-500">Пройдено: ${done.score}б</div>`;
+                    h += `<div class="card p-4 flex justify-between items-center"><span class="font-black text-slate-700">${test.title}</span>${btn}</div>`;
+                });
+                document.getElementById('tests-list').innerHTML = h;
+            });
+        });
+
+        onValue(ref(db, `diaries/${currentUser.login}`), s => {
+            const d = s.val() || { schedule: [], homework: "Заданий нет" };
+            document.getElementById('display-homework').innerText = d.homework;
+            let h = ""; ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"].forEach(day => {
+                const ls = (d.schedule || []).filter(l => l.day === day);
+                if(ls.length) {
+                    h += `<div class="bg-white p-4 rounded-3xl border mb-2"><h4 class="font-bold text-blue-600 text-[10px] uppercase">${day}</h4>`;
+                    ls.forEach(l => h += `<div class="flex justify-between text-[11px] py-1 border-b border-dashed"><span>${l.time}</span><b>${l.subject}</b></div>`);
+                    h += `</div>`;
+                }
+            });
+            document.getElementById('display-schedule').innerHTML = h || "Расписание пусто";
+        });
+
+        onValue(ref(db, `scores/${currentUser.login}`), s => { document.getElementById('user-total-score').innerText = s.val() || 0; });
+        onValue(ref(db, 'shop'), s => {
+            let h = ""; s.forEach(i => { const v = i.val(); h += `<div class="card p-4 text-center"><div>${v.icon}</div><div class="font-bold text-xs">${v.name}</div><div class="text-green-600 font-bold">${v.price} ⭐</div></div>`; });
+            document.getElementById('shop-items').innerHTML = h;
+        });
+    }
+
+    // --- АДМИН ПАНЕЛЬ ФУНКЦИИ ---
+    window.manualGrade = () => {
+        const studentID = document.getElementById('grade-student').value;
+        const studentData = USERS.find(u => u.login === studentID);
+        const subj = document.getElementById('grade-subject').value;
+        const val = document.getElementById('grade-value').value;
+        const date = document.getElementById('grade-date').value;
+        const comm = document.getElementById('grade-comment').value;
+        const color = document.getElementById('grade-color').value;
+        if(subj && val) {
+            push(ref(db, 'results'), { student: studentID, studentNick: studentData.nick, title: subj, score: val, workDate: date, comment: comm, color: color, time: Date.now() });
+            alert("Оценка сохранена!");
+        }
+    };
+
+    window.publishNews = () => {
+        const t = document.getElementById('news-title-input').value;
+        const x = document.getElementById('news-text-input').value;
+        if(t && x) push(ref(db, 'posts'), { title: t, text: x, date: new Date().toLocaleString() });
+    };
+
+    window.addScheduleRowUI = () => {
+        const d = document.createElement('div');
+        d.className = "flex gap-2 sch-row bg-slate-50 p-2 rounded-lg border";
+        d.innerHTML = `<select class="s-day text-[10px] border rounded"><option>Понедельник</option><option>Вторник</option><option>Среда</option><option>Четверг</option><option>Пятница</option><option>Суббота</option></select><input type="time" class="s-time text-[10px] border rounded" value="08:00"><input type="text" class="s-subj flex-1 text-[10px] border rounded p-1" placeholder="Урок"><button onclick="this.parentElement.remove()" class="text-red-500">×</button>`;
+        document.getElementById('admin-schedule-inputs').appendChild(d);
+    };
+
+    window.saveDiary = () => {
+        const t = document.getElementById('diary-target-student').value;
+        const rows = [];
+        document.querySelectorAll('.sch-row').forEach(r => { rows.push({ day: r.querySelector('.s-day').value, time: r.querySelector('.s-time').value, subject: r.querySelector('.s-subj').value }); });
+        set(ref(db, `diaries/${t}`), { schedule: rows, homework: document.getElementById('admin-homework-input').value });
+        alert("Дневник обновлен!");
+    };
+
+    window.addTestQuestionUI = () => {
+        const d = document.createElement('div');
+        d.className = "p-4 bg-purple-50 rounded-2xl border adm-q-block";
+        d.innerHTML = `<input placeholder="Вопрос" class="adm-q-txt w-full p-2 mb-2 rounded border"><div class="grid grid-cols-2 gap-2"><input placeholder="Отв 1" class="adm-o-0 p-2 border rounded"><input placeholder="Отв 2" class="adm-o-1 p-2 border rounded"></div><select class="adm-q-corr w-full mt-2 p-2 border rounded"><option value="0">Ответ 1</option><option value="1">Ответ 2</option></select><input type="number" class="adm-q-pts w-full mt-2 p-2 border rounded" value="5">`;
+        document.getElementById('test-qs-container').appendChild(d);
+    };
+
+    window.saveTest = () => {
+        const t = document.getElementById('test-title-input').value;
+        const qs = [];
+        document.querySelectorAll('.adm-q-block').forEach(b => { qs.push({ text: b.querySelector('.adm-q-txt').value, opts: [b.querySelector('.adm-o-0').value, b.querySelector('.adm-o-1').value], correct: parseInt(b.querySelector('.adm-q-corr').value), points: parseInt(b.querySelector('.adm-q-pts').value) }); });
+        if(t && qs.length) push(ref(db, 'tests'), { title: t, questions: qs });
+        alert("Тест опубликован!");
+    };
+</script>
+</body>
+</html>
