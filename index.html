@@ -199,18 +199,18 @@
     const USERS = [
         {login: 'admin', pass: 's1mple', role: 'admin', nick: 'Главный Админ', class: 'Администрация'},
         {login: 'ElviraMuratalievna', pass: '123', role: 'admin', nick: 'Эльвира Мураталиевна', class: 'Администрация'},
-        {login: 'KimStanislav', pass: '123', role: 'student', nick: 'Ким Станислав', class: '4-A'},
-        {login: 'FattakhovDaniel', pass: 's1mple', role: 'student', nick: 'Фаттахов Даниэль', class: '4-A'},
-        {login: 'KurbanbaevAlikhan', pass: '123', role: 'student', nick: 'Курбанбаев Алихан', class: '4-A'},
-        {login: 'KadirkulovBexultan', pass: '123', role: 'student', nick: 'Кадиркулов Бексултан', class: '4-A'},
-        {login: 'AskarovaSamira', pass: '123', role: 'student', nick: 'Аскарова Самира', class: '4-A'},
-        {login: 'AlisherovAbdukhalil', pass: '123', role: 'student', nick: 'Алишеров Абдухалил', class: '4-B'},
-        {login: 'RikhsivaevaLaziza', pass: '123', role: 'student', nick: 'Рихсиваева Лазиза', class: '4-B'},
-        {login: 'MukhammedovDzhavokhir', pass: '123', role: 'student', nick: 'Мухаммедов Джавохир', class: '4-B'},
-        {login: 'YusupalievaMarzhan', pass: '123', role: 'student', nick: 'Юсупалиева Маржан', class: '4-B'},
-        {login: 'NabievaOmina', pass: '123', role: 'student', nick: 'Набиева Омина', class: '4-B'},
-        {login: 'Saidkasimov Mirazbek', pass: '123', role: 'student', nick: 'Сайдкасимов Миразбек', class: '4-B'},
-        {login: 'NurlibaevNurakim', pass: '123', role: 'student', nick: 'Нурлибаев Нураким', class: '4-B'},
+        {login: 'KimStanislav', pass: '123', role: 'student', nick: 'Ким Станислав', class: 'IDC-1'},
+        {login: 'FattakhovDaniel', pass: 's1mple', role: 'student', nick: 'Фаттахов Даниэль', class: 'IDC-1'},
+        {login: 'KurbanbaevAlikhan', pass: '123', role: 'student', nick: 'Курбанбаев Алихан', class: 'IDC-1'},
+        {login: 'KadirkulovBexultan', pass: '123', role: 'student', nick: 'Кадиркулов Бексултан', class: 'IDC-1'},
+        {login: 'AskarovaSamira', pass: '123', role: 'student', nick: 'Аскарова Самира', class: 'IDC-1'},
+        {login: 'AlisherovAbdukhalil', pass: '123', role: 'student', nick: 'Алишеров Абдухалил', class: 'IDC-1'},
+        {login: 'RikhsivaevaLaziza', pass: '123', role: 'student', nick: 'Рихсиваева Лазиза', class: 'IDC-1'},
+        {login: 'MukhammedovDzhavokhir', pass: '123', role: 'student', nick: 'Мухаммедов Джавохир', class: 'IDC-1'},
+        {login: 'YusupalievaMarzhan', pass: '123', role: 'student', nick: 'Юсупалиева Маржан', class: 'IDC-1'},
+        {login: 'NabievaOmina', pass: '123', role: 'student', nick: 'Набиева Омина', class: 'IDC-1'},
+        {login: 'Saidkasimov Mirazbek', pass: '123', role: 'student', nick: 'Сайдкасимов Миразбек', class: 'IDC-1'},
+        {login: 'NurlibaevNurakim', pass: '123', role: 'student', nick: 'Нурлибаев Нураким', class: 'IDC-1'},
     ];
 
     window.currentUser = null;
@@ -246,7 +246,6 @@
                     document.getElementById('manage-class-student').innerHTML = opt;
                     window.updateClassInputLabel();
                     
-                    // Первичная инициализация полей расписания в админке при входе
                     if(document.getElementById('admin-schedule-inputs').children.length === 0) {
                         window.addScheduleRowUI();
                     }
@@ -272,7 +271,6 @@
         return 'grade-gray';
     }
 
-    // --- ТЕСТЫ ---
     let activeT = null; let curQ = 0; let curS = 0; let totalP = 0; let userAns = [];
     window.startTest = async (id) => {
         const snap = await get(ref(db, `tests/${id}`));
@@ -322,11 +320,24 @@
         document.getElementById('test-player').innerHTML = `<div class="text-center py-6"><h2 class="text-3xl font-black text-purple-600 mb-2 italic">Завершено!</h2><div class="text-5xl font-black mb-4">${curS} / ${totalP}</div><button onclick="location.reload()" class="w-full btn-primary">ВЕРНУТЬСЯ</button></div>`;
     }
 
-    // --- СИНХРОНИЗАЦИЯ ---
     function startSync() {
         onValue(ref(db, 'posts'), s => {
-            let h = ""; s.forEach(p => { const v = p.val(); h = `<div class="card p-6 border-l-4 border-blue-500 mb-2"><b>${v.title}</b><p class="text-sm text-slate-600">${v.text}</p></div>` + h; });
+            let h = ""; 
+            let count = 0;
+            s.forEach(p => { 
+                const v = p.val(); 
+                h = `<div class="card p-6 border-l-4 border-blue-500 mb-2"><b>${v.title}</b><p class="text-sm text-slate-600">${v.text}</p></div>` + h; 
+                count++;
+            });
             document.getElementById('news-container').innerHTML = h || "Новостей нет";
+            
+            // Динамическое обновление счетчика новостей
+            const badge = document.getElementById('news-badge');
+            if(badge) {
+                badge.innerText = count;
+                if(count > 0) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            }
         });
 
         onValue(ref(db, 'results'), s => {
@@ -349,7 +360,6 @@
                 }
             });
             document.getElementById('grades-grid').innerHTML = h || "Оценок пока нет";
-            
             renderRatingsSystem();
         });
 
@@ -388,7 +398,6 @@
         });
     }
 
-    // --- СИСТЕМА РЕЙТИНГОВ (КЛАСС И ШКОЛА) ---
     function renderRatingsSystem() {
         get(ref(db, 'scores')).then(scoresSnap => {
             get(ref(db, 'results')).then(resultsSnap => {
@@ -466,7 +475,6 @@
         });
     }
 
-    // --- ФУНКЦИИ УПРАВЛЕНИЯ КЛАССАМИ (АДМИН) ---
     window.updateClassInputLabel = () => {
         const studentID = document.getElementById('manage-class-student').value;
         const studentData = USERS.find(u => u.login === studentID);
@@ -494,7 +502,6 @@
         });
     };
 
-    // --- АДМИН ПАНЕЛЬ ФУНКЦИИ ---
     window.publishNews = () => {
         const t = document.getElementById('news-title-input').value.trim();
         const txt = document.getElementById('news-text-input').value.trim();
@@ -538,7 +545,6 @@
 
     window.addTestQuestionUI = () => {
         const container = document.getElementById('test-qs-container');
-        const qIdx = container.children.length;
         const div = document.createElement('div');
         div.className = "p-4 bg-slate-50 rounded-2xl border question-block mb-3";
         div.innerHTML = `
@@ -587,7 +593,6 @@
         const color = document.getElementById('grade-color').value;
 
         if(subj && val) {
-            // 1. Сохраняем саму оценку (текст) в историю (results)
             push(ref(db, 'results'), { 
                 student: studentID, 
                 studentNick: studentData.nick, 
@@ -597,18 +602,16 @@
                 comment: comm, 
                 color: color 
             }).then(() => {
-                // 2. Стабильно начисляем ученику ровно 1 звезду за факт получения любой оценки
                 return get(ref(db, `scores/${studentID}`));
             }).then(s => {
                 return set(ref(db, `scores/${studentID}`), (s.val() || 0) + 1);
             }).then(() => {
                 alert("Оценка успешно выставлена! Ученику начислена 1 звезда.");
-                // Очищаем поля ввода
                 document.getElementById('grade-subject').value = "";
                 document.getElementById('grade-value').value = "";
                 document.getElementById('grade-comment').value = "";
             }).catch(err => {
-                alert("Ошибка сохранения: " + err.message);
+                alert("Ошибка保存: " + err.message);
             });
         } else {
             alert("Пожалуйста, заполните предмет и оценку!");
